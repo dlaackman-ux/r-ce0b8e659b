@@ -31,7 +31,7 @@ GRAY_LEVELS = 4
 # contains black and white.
 PNG_BITS = 2
 # Bump when the rendering changes so already-published editions get redrawn.
-RENDER_VERSION = 5
+RENDER_VERSION = 6
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
 PAPERBOY = "https://cdn.thepaperboy.com/frontpages/{region}/{ymd}/{slug}_lg.jpg"
@@ -44,6 +44,8 @@ PAPERS = [
     {"key": "wsj", "name": "The Wall Street Journal", "region": "us", "slug": "wall_street_journal", "ff": "WSJ", "trim_top": 0.02},
     {"key": "guardian", "name": "The Guardian", "region": "uk", "slug": "the_guardian", "trim_top": 0.0},
     {"key": "ft", "name": "Financial Times", "region": "uk", "slug": "financial_times", "trim_top": 0.0},
+    # Not on Paperboy, so Freedom Forum is the only source.
+    {"key": "globe", "name": "The Globe and Mail", "ff": "CAN_TGAM", "trim_top": 0.0},
 ]
 
 try:
@@ -84,7 +86,8 @@ def sources_for(paper, day):
     """URLs to try for one edition date, best quality first."""
     if paper.get("ff"):
         yield FREEDOM_FORUM.format(day=day.day, code=paper["ff"]), True
-    yield PAPERBOY.format(region=paper["region"], ymd=day.strftime("%Y%m%d"), slug=paper["slug"]), False
+    if paper.get("slug"):
+        yield PAPERBOY.format(region=paper["region"], ymd=day.strftime("%Y%m%d"), slug=paper["slug"]), False
 
 
 def find_edition(paper, today, fetcher=fetch):

@@ -55,6 +55,14 @@ class FindEdition(unittest.TestCase):
         self.assertTrue(all("thepaperboy" in u for u in seen))
 
 
+    def test_freedom_forum_only_paper(self):
+        seen = []
+        globe = next(p for p in fp.PAPERS if p["key"] == "globe")
+        fp.find_edition(globe, TODAY, lambda u: (seen.append(u), (None, None))[1])
+        self.assertTrue(seen)
+        self.assertTrue(all("CAN_TGAM.pdf" in u for u in seen))
+
+
 class Render(unittest.TestCase):
     def test_output_uses_only_allowed_levels(self):
         out = fp.render(fake_page(), fp.PAPERS[3], TODAY, 4, 4)
