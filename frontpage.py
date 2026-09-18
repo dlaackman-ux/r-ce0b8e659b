@@ -25,9 +25,9 @@ PAGE_W = 600  # page is shrunk to this width so more of it fits above the bar
 PAGE_H = SCREEN_H - BAR_H
 
 # 4 = 2-bit grayscale (black, dark gray, light gray, white); 2 = pure black and white.
-GRAY_LEVELS = 4
+GRAY_LEVELS = 2
 # Bump when the rendering changes so already-published editions get redrawn.
-RENDER_VERSION = 2
+RENDER_VERSION = 3
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
 PAPERBOY = "https://cdn.thepaperboy.com/frontpages/{region}/{ymd}/{slug}_lg.jpg"
