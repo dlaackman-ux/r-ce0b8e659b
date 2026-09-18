@@ -1,0 +1,48 @@
+name: render
+
+on:
+  schedule:
+    # UK editions appear ~22:00 UTC the night before; US scans by ~05:00 UTC.
+    - cron: "20 22,4,10,16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - run: python -m unittest discover -s tests -t .
+
+      - name: Restore previously published images
+        run: |
+          mkdir -p out
+          if git fetch --depth=1 origin images 2>/dev/null; then
+            git --work-tree=out checkout FETCH_HEAD -- . && git reset -q
+          fi
+
+      - run: python frontpage.py --out out
+
+      - name: Publish to the images branch (single commit, history replaced)
+        working-directory: out
+        run: |
+          git init -q -b images
+          git add -A
+          git -c user.name=render-bot -c user.email=render-bot@users.noreply.github.com \
+            commit -qm "render $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" images
