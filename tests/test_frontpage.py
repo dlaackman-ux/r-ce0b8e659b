@@ -87,17 +87,24 @@ class Render(unittest.TestCase):
 class Png(unittest.TestCase):
     def test_two_bit_roundtrip(self):
         a = np.array([[0, 85, 170, 255, 255], [255, 170, 85, 0, 0]], dtype=np.uint8)
-        data = fp.png_bytes(Image.fromarray(a), 4)
+        data = fp.png_bytes(Image.fromarray(a), bits=2)
         self.assertEqual((data[24], data[25]), (2, 0))  # bit depth 2, grayscale
         back = np.asarray(Image.open(io.BytesIO(data)).convert("L"))
         np.testing.assert_array_equal(back, a)
 
     def test_one_bit_roundtrip(self):
         a = np.array([[0, 255] * 5 + [0]], dtype=np.uint8)
-        data = fp.png_bytes(Image.fromarray(a), 2)
+        data = fp.png_bytes(Image.fromarray(a), bits=1)
         self.assertEqual(data[24], 1)
         back = np.asarray(Image.open(io.BytesIO(data)).convert("L"))
         np.testing.assert_array_equal(back, a)
+
+
+    def test_black_and_white_in_a_two_bit_file(self):
+        a = np.array([[0, 255, 0, 255, 255]], dtype=np.uint8)
+        data = fp.png_bytes(Image.fromarray(a), bits=2)
+        self.assertEqual(data[24], 2)
+        np.testing.assert_array_equal(np.asarray(Image.open(io.BytesIO(data)).convert("L")), a)
 
 
 class Main(unittest.TestCase):

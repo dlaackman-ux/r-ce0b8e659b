@@ -26,8 +26,12 @@ PAGE_H = SCREEN_H - BAR_H
 
 # 4 = 2-bit grayscale (black, dark gray, light gray, white); 2 = pure black and white.
 GRAY_LEVELS = 2
+# PNG bit depth. The OG uses fast (partial) refresh for 1-bit images, which leaves
+# text washed out and ghosted; a 2-bit file gets a full refresh even when it only
+# contains black and white.
+PNG_BITS = 2
 # Bump when the rendering changes so already-published editions get redrawn.
-RENDER_VERSION = 3
+RENDER_VERSION = 4
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
 PAPERBOY = "https://cdn.thepaperboy.com/frontpages/{region}/{ymd}/{slug}_lg.jpg"
@@ -201,10 +205,10 @@ def render(data, paper, edition, position, total, n_levels=GRAY_LEVELS):
     return Image.fromarray(quantize(np.asarray(screen, dtype=np.float32), n_levels).astype(np.uint8))
 
 
-def png_bytes(img, n_levels=GRAY_LEVELS):
+def png_bytes(img, bits=PNG_BITS):
     """Encode as a true 1- or 2-bit grayscale PNG (Pillow only writes 8-bit grayscale)."""
-    bits = 1 if n_levels == 2 else 2
-    idx = np.asarray(img, dtype=np.uint16) * (n_levels - 1) // 255  # 0..n-1
+    max_idx = (1 << bits) - 1
+    idx = (np.asarray(img, dtype=np.uint16) * max_idx + 127) // 255  # 0..max_idx
     h, w = idx.shape
     per_byte = 8 // bits
     padded = np.zeros((h, -(-w // per_byte) * per_byte), dtype=np.uint8)
