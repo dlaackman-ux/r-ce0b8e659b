@@ -80,6 +80,16 @@ class Render(unittest.TestCase):
         a = fp.levels(page)
         self.assertGreater(a[700, 300], 240)
 
+    def test_photo_dominated_page_is_not_blown_out(self):
+        # A Saturday feature cover: mostly dark photo, with a lighter masthead block.
+        page = np.full((600, 400), 60, dtype=np.uint8)
+        page[20:120, 20:200] = 150  # masthead
+        page[300:500, 100:300] = 230  # a bright highlight in the photo
+        a = fp.levels(Image.fromarray(page))
+        self.assertLess(a[400, 200] - a[60, 100], 250)  # masthead stays below the highlight
+        self.assertLess(a[60, 100], 250)  # and does not blow out to white
+        self.assertGreater(a[60, 100] - a[200, 350], 20)  # still lighter than the dark photo
+
     def test_text_is_not_dithered_but_photos_are(self):
         img = Image.new("L", (400, 200), 255)
         d = ImageDraw.Draw(img)

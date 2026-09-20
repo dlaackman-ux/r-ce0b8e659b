@@ -31,7 +31,7 @@ GRAY_LEVELS = 4
 # contains black and white.
 PNG_BITS = 2
 # Bump when the rendering changes so already-published editions get redrawn.
-RENDER_VERSION = 6
+RENDER_VERSION = 7
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
 PAPERBOY = "https://cdn.thepaperboy.com/frontpages/{region}/{ymd}/{slug}_lg.jpg"
@@ -122,6 +122,11 @@ def levels(img):
     """Map the paper's own background tone (e.g. FT salmon) to white and stretch contrast."""
     a = np.asarray(img, dtype=np.float32)
     black, white = np.percentile(a, 1), np.percentile(a, 60)
+    # On a page dominated by a photo (e.g. a Saturday feature cover) the 60th
+    # percentile is part of the picture, not the paper; stretching to it would
+    # blow the photo out to white. Fall back to the page's own brightest tone.
+    if white < 160:
+        white = np.percentile(a, 99)
     if white - black < 40:
         black, white = 0.0, 255.0
     return ((a - black) * 255.0 / (white - black)).clip(0, 255)
